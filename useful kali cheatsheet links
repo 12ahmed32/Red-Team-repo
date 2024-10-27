@@ -1,0 +1,110 @@
+vim -> https://vim.rtorr.com/  [ text editing]
+Transfering files :
+from internet -> wget path/to/file.extension
+from your host -> SCP(SSH) Secure Copy unlike the regular cp command , this command allows you to transfer files between 2 computers using SSH protocol to provide both authentication and encryption . 
+working on a model of SOURCE and DESTINATION , SCP  allows you to :
+-> copy files & directories from your current system to a remote system
+-> copy files & directorires from a remote system to your current system
+scp [name of file on local system ] [user on remote system ]@[ip address of remote system] :/path/to/[file we wish to store the file as on the remote system ]
+scp important.txt ubuntu@192.168.1.30:/home/ubuntu/transferred.txt
+Processes :
+ps -> viweing runnning processes as our user's sessoin 
+ps aux -> to see procecsses run by other users and those that don't run from a session [system processes] 
+top -> give real-time statistics about the processes running on your system instead of a one-time view , these statistics will refresh every 10 seconds 
+Managing Processes :
+SIGTERM -> kill the process , but allow it to do some cleanup tasks beforehand
+SIGKILL -> kill the process - doesn't allow do any cleanup after the fact
+SIGSTOP -> stop/suspend a process
+How a Process start ?
+namespace -> OS uses namespaces to ultimalely split up the resources availbe on the computer such as CPU , RAM , Priority to peocesses . 
+Think of it as splitting your computer up into slices -- similar to a cake. Processes within that slice will have access to a certain amount of computing power, however, it will be a small portion of what is actually available to every process overall.
+Namespaces are great for security as it is a way of isolating processes from another -- only those that are in the same namespace will be able to see each other.
+The process with an ID of 0 is a process that is started when the system boots. This process is the system's init on Ubuntu, such as systemd, which is used to provide a way of managing a user's processes and sits in between the operating system and the user. 
+in Linux (or in containerized environments), the term "namespace" can refer to various forms of isolation that go beyond memory. For example, Linux namespaces provide isolation for different resources like:
+
+Mount Namespace (isolates filesystem mount points)
+PID Namespace (isolates process IDs)
+Network Namespace (isolates network interfaces and routing)
+UTS Namespace (isolates hostname and domain name)
+User Namespace (isolates user and group IDs)
+The OS can use namespaces to isolate processes in different aspects, so they operate as if they’re in completely separate environments, even though they’re on the same system. Each namespace type isolates a specific resource,
+allowing processes to only "see" the resources within their own namespace, effectively creating sandboxed environments
+This setup is key in containerization (such as with Docker), where each container is isolated from others on the system. It allows containers to appear as if they’re running on separate machines, even though they share the same underlying OS.
+
+----SUMMARY---
+so when we start a process the OS will assign it various namespaces that each one define for the process what resources it will see and what other processes it can see and interact with witch can isolate processes completely making it like a container ,
+that each container [ some processes in same namespace can deal with each other and the system ] is isolated from other containers making it like running in its own machine 
+
+
+--Getting Processes/Services to start on boot 
+systemctl [option] [service] 
+we can do 4 options : START STOP DISABLE ENABLE 
+
+Processes can run in 2 stats -> background and foreground 
+normal command in foreground , adding & at the end making it running in background
+echo "ahmed sameh" -> ahmed sameh
+echo "ahmed sameh" & -> process ID
+we can do the same when executing scripts rather relying on & operator we can use Crtl+Z to backgroundd a process , it is also a effective way of "pausing"  the execution of a script or command 
+
+--Foregrounding a process :
+ps aux -> determine the running process
+fg command to bring the background proces into use on the terminal , where the output of the script is now returned 
+
+--Automation :
+Crontabs -> is one of the processes that is started during boot , which is responsible for facilitating and managing jops
+crontab is simple a special file with formatting that is recongized by the cron process to execute each line step-by-step . crontabs require 6 specific values :
+Value	Description
+MIN	What minute to execute at
+HOUR	What hour to execute at
+DOM	What day of the month to execute at
+MON	What month of the year to execute at
+DOW	What day of the week to execute at
+CMD	The actual command that will be executed.
+
+Let's use the example of backing up files. You may wish to backup "cmnatic"'s  "Documents" every 12 hours. We would use the following formatting: 
+
+0 */12 * * * cp -R /home/cmnatic/Documents /var/backups/
+
+An interesting feature of crontabs is that these also support the wildcard or asterisk (*). If we do not wish to provide a value for that specific field, i.e. we don't care what month, day, or year it is executed -- only that it is executed every 12 hours,
+we simply just place an asterisk.
+websites to help you formatting your crontab : 
+https://crontab.guru/
+https://crontab-generator.org/
+
+Crontabs can be edited by using crontab -e, where you can select an editor (such as Nano) to edit your crontab.
+
+Package management : 
+When developers wish to submit software to the community, they will submit it to an  "apt" repository. If approved, their programs and tools will be released into the wild. 
+Two of the most redeeming features of Linux shine to light here: User accessibility and the merit of open source tools.
+
+/etc/apt$ ls
+these files serve as the gateway/registry. 
+Whilst Operating System vendors will maintain their own repositories, you can also add community repositories to your list! This allows you to extend the capabilities of your OS. Additional repositories can be added by using the add-apt-repositorycommand or by listing another provider! 
+For example, some vendors will have a repository that is closer to their geographical location.
+
+Managing Your Repositories (Adding and Removing) 
+Normally we use the apt command to install software onto our Ubuntu system. The apt command is a part of the package management software also named apt. Apt contains a whole suite of tools that allows us to manage the packages and sources of our software, 
+and to install or remove software at the same time.
+
+One method of adding repositories is to use the add-apt-repository command we illustrated above, but we're going to walk through adding and removing a repository manually. Whilst you can install software through the use of package installers such as dpkg,
+the benefits of apt means that whenever we update our system -- the repository that contains the pieces of software that we add also gets checked for updates. 
+So, to start, we need to add the GPG key for the developers of Sublime Text 3. (Note that TryHackMe instances do not have internet access and so we're not expecting you to add this to the machine that you deploy, as it would fail.)
+
+1. Let's download the GPG key and use apt-key to trust it:  wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
+
+2. Now that we have added this key to our trusted list, we can now add Sublime Text 3's repository to our apt sources list. A good practice is to have a separate file for every different community/3rd party repository that we add.
+
+2.1. Let's create a file named sublime-text.list in /etc/apt/sources.list.d and enter the repository information like so:
+
+
+
+2.2. And now use Nano or a text editor of your choice to add & save the Sublime Text 3 repository into this newly created file:
+
+
+
+2.3. After we have added this entry, we need to update apt to recognise this new entry -- this is done using the apt update command
+
+2.4. Once successfully updated, we can now proceed to install the software that we have trusted and added to apt using apt install sublime-text
+
+Removing packages is as easy as reversing. This process is done by using the add-apt-repository --remove ppa:PPA_Name/ppa command or by manually deleting the file that we previously added to. Once removed, we can just use apt remove [software-name-here] i.e. apt remove sublime-text
+last thing to maintain logs you can find it at : /va/logs
